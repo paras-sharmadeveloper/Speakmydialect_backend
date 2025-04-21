@@ -104,12 +104,14 @@ class UserMetaController extends Controller
                 $existingSkill->update([
                     'level' => $skill['level'],
                     'dialect' => $skill['dialect'],
-                    'status' => $skill['status']
+                    'status' => $skill['status'],
+                    'country' => $skill['country']
                 ]);
             } else {
                 // If skill doesn't exist, create it
                 UserSkills::create([
                     'user_id' => $userId,
+                    'country' => $skill['country'],
                     'language' => $skill['language'],
                     'dialect' => $skill['dialect'],
                     'level' => $skill['level'],
