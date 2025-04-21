@@ -86,6 +86,13 @@ class SearchTranslatorsController extends Controller
             });
         }
 
+        if ($request->filled('country')) {
+            $query->whereHas('userSkills', function ($subquery) use ($request) {
+                $subquery->where('country',  $request->input('country'));
+            });
+        }
+
+
         if ($request->filled('dialect')) {
             $query->whereHas('userSkills', function ($subquery) use ($request) {
                 $subquery->where('dialect',  $request->input('dialect'));
@@ -98,6 +105,7 @@ class SearchTranslatorsController extends Controller
             ->whereHas('userSkills', function ($subquery) {
                 $subquery->whereNotNull('level'); // Ensure the user has a skill (level)
             });
+
 
         $query->with('userMeta', 'userSkills')->where(['user_type' =>'translator','status' => 'active']);
         // $translators = $query->get();
