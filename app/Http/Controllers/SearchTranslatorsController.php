@@ -10,14 +10,15 @@ use Illuminate\Support\Facades\Auth;
 class SearchTranslatorsController extends Controller
 {
 
-    public function ProfileIncomplete($userId){
-        $query = User::where('id',$userId);
+    public function ProfileIncomplete($userId)
+    {
+        $query = User::where('id', $userId);
         $query->whereHas('userSkills', function ($subquery) {
             $subquery->whereNotNull('language'); // Ensure user has a language
         })
-        ->whereHas('userSkills', function ($subquery) {
-            $subquery->whereNotNull('level'); // Ensure user has a skill (level)
-        });
+            ->whereHas('userSkills', function ($subquery) {
+                $subquery->whereNotNull('level'); // Ensure user has a skill (level)
+            });
         $user =  $query->first();
 
         $ud = User::find($userId);
@@ -27,94 +28,50 @@ class SearchTranslatorsController extends Controller
 
             return response()->json([
                 'status' => false,
-                'profile_locked' =>$ud->profile_locked,
+                'profile_locked' => $ud->profile_locked,
                 'message' => 'Your profile is incomplete. You must have at least one skill and one language to appear in the search results.',
             ], 400); // Return a 400 Bad Request with the error message
-        }else{
+        } else {
             return response()->json([
                 'message' => 'Your Profile is complete',
                 'status' => true,
                 'profile_locked' => $user->profile_locked
-            ],200);
+            ], 200);
         }
-
     }
-    public function searchTranslators(Request $request)
+
+public function searchTranslators(Request $request)
 {
     $query = User::query();
 
-    // Consolidated filter for userMeta with AND conditions and active status
-    // $query->whereHas('userMeta', function ($subquery) use ($request) {
+    // Apply dynamic filters inside a single userSkills query
+    $query->whereHas('userSkills', function ($subquery) use ($request) {
+        $subquery->where('status', 'active');
 
+        if ($request->filled('language')) {
+            $subquery->where('language', $request->input('language'));
+        }
 
-    //     if ($request->filled('fix_rate')) {
-    //         $subquery->where('fix_rate', $request->input('fix_rate'));
-    //     }
-
-    //     if ($request->filled('hourly_rate')) {
-    //         $subquery->where('hourly_rate', $request->input('hourly_rate'));
-    //     }
-
-    //     if ($request->filled('location')) {
-    //         $subquery->where('location', $request->input('location'));
-    //     }
-
-    //     if ($request->filled('gender')) {
-    //         $subquery->where('gender', $request->input('gender'));
-    //     }
-    // });
-
-    // Apply filters from user_skills table
-    if ($request->filled('language')) {
-        $languageId = $request->input('language');
-        $query->whereHas('userSkills', function ($subquery) use ($languageId) {
-             $subquery->where('status', 'active');
-            $subquery->where('language', $languageId);
-        });
-    }
-
-    if ($request->filled(key: 'level')) {
-        $query->whereHas('userSkills', function ($subquery) use ($request) {
-             $subquery->where('status', 'active');
-             $subquery->where('level', $request->input('level'));
-        });
-    }
-
-    if ($request->filled('country')) {
-        $query->whereHas('userSkills', function ($subquery) use ($request) {
-             $subquery->where('status', 'active');
+        if ($request->filled('country')) {
             $subquery->where('country', $request->input('country'));
-        });
-    }
+        }
 
-    if ($request->filled('dialect')) {
-        $query->whereHas('userSkills', function ($subquery) use ($request) {
-             $subquery->where('status', 'active');
-             $subquery->where('dialect','LIKE', $request->input('dialect'));
-        });
-    }
+        if ($request->filled('dialect')) {
+            $subquery->where('dialect', 'LIKE', $request->input('dialect'));
+            // Use '%'.$request->input('dialect').'%' if partial matching is needed
+        }
 
+        if ($request->filled('level')) {
+            $subquery->where('level', $request->input('level'));
+        }
+    });
 
-    // Ensure user has at least one skill and one language
-    // $query->whereHas('userSkills', function ($subquery) {
-    //      $subquery->where('status', 'active');
-    //     $subquery->whereNotNull('language');
-    // })->whereHas('userSkills', function ($subquery) {
-    //     $subquery->where('status', 'active');
-    //     $subquery->whereNotNull('level');
-    // });
-
-    // Ensure user is an active translator
+    // Base user filters
     $query->with('userMeta', 'userSkills')
         ->where([
             'user_type' => 'translator',
-            'status' => 'active'
+            'status' => 'active',
         ]);
-    // $query->with('userMeta', 'userSkills')
-    //     ->where([
-    //         'user_type' => 'translator',
-    //         'status' => 'active'
-    //     ]);
 
     // Pagination
     $pagelimit = $request->input('page_limit', 10);
@@ -132,6 +89,8 @@ class SearchTranslatorsController extends Controller
         'status' => true,
     ], 200);
 }
+
+
 
     // public function searchTranslators(Request $request)
     // {
@@ -230,12 +189,12 @@ class SearchTranslatorsController extends Controller
             $query->where('name', 'LIKE', "%$language%");
         }
         $languages = $query->get();
-        return response()->json(['message' => 'languages suggestion list fetched successfully.' ,'data' => $languages ,'status' => true],200);
+        return response()->json(['message' => 'languages suggestion list fetched successfully.', 'data' => $languages, 'status' => true], 200);
     }
 
-    public function getUserProfile($uuid){
-        $data = User::with('userMeta', 'userSkills','UserEducation','UserWorkExperince')->where('uuid',$uuid)->first();
-        return response()->json(['message' => 'user profile fetched successfully.' ,'data' => $data ,'status' => true],200);
+    public function getUserProfile($uuid)
+    {
+        $data = User::with('userMeta', 'userSkills', 'UserEducation', 'UserWorkExperince')->where('uuid', $uuid)->first();
+        return response()->json(['message' => 'user profile fetched successfully.', 'data' => $data, 'status' => true], 200);
     }
-
 }
