@@ -90,7 +90,7 @@ class SearchTranslatorsController extends Controller
     if ($request->filled('dialect')) {
         $query->whereHas('userSkills', function ($subquery) use ($request) {
              $subquery->where('status', 'active');
-            $subquery->where('dialect', $request->input('dialect'));
+             $subquery->where('dialect','LIKE', $request->input('dialect'));
         });
     }
 
