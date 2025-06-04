@@ -73,10 +73,10 @@ class SearchTranslatorsController extends Controller
         });
     }
 
-    if ($request->filled('level')) {
+    if ($request->filled(key: 'level')) {
         $query->whereHas('userSkills', function ($subquery) use ($request) {
              $subquery->where('status', 'active');
-            $subquery->where('level', $request->input('level'));
+             $subquery->where('level', $request->input('level'));
         });
     }
 
@@ -95,12 +95,13 @@ class SearchTranslatorsController extends Controller
     }
 
     // Ensure user has at least one skill and one language
-    $query->whereHas('userSkills', function ($subquery) {
-         $subquery->where('status', 'active');
-        $subquery->whereNotNull('language');
-    })->whereHas('userSkills', function ($subquery) {
-        $subquery->whereNotNull('level');
-    });
+    // $query->whereHas('userSkills', function ($subquery) {
+    //      $subquery->where('status', 'active');
+    //     $subquery->whereNotNull('language');
+    // })->whereHas('userSkills', function ($subquery) {
+    //     $subquery->where('status', 'active');
+    //     $subquery->whereNotNull('level');
+    // });
 
     // Ensure user is an active translator
     $query->with('userMeta', 'userSkills')
