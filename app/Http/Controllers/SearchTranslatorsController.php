@@ -74,32 +74,27 @@ class SearchTranslatorsController extends Controller
         //     });
         // }
 
-        // Apply filters from user_skills table
-        if ($request->filled('language')) {
-            $languageId = $request->input('language');
-            $query->whereHas('userSkills', function ($subquery) use ($request,$languageId) {
-                $subquery->where('language',$languageId );
-            });
-        }
+        // Combine all skill filters into one whereHas block
+        $query->whereHas('userSkills', function ($subquery) use ($request) {
+            $subquery->where('status', 'active'); // optional, but recommended
 
-        if ($request->filled('level')) {
-            $query->whereHas('userSkills', function ($subquery) use ($request) {
-                $subquery->where('level',  $request->input('level'));
-            });
-        }
+            if ($request->filled('language')) {
+                $subquery->where('language', $request->input('language'));
+            }
 
-        if ($request->filled('country')) {
-            $query->whereHas('userSkills', function ($subquery) use ($request) {
-                $subquery->where('country',  $request->input('country'));
-            });
-        }
+            if ($request->filled('level')) {
+                $subquery->where('level', $request->input('level'));
+            }
 
+            if ($request->filled('country')) {
+                $subquery->where('country', $request->input('country'));
+            }
 
-        if ($request->filled('dialect')) {
-            $query->whereHas('userSkills', function ($subquery) use ($request) {
-                $subquery->where('dialect', 'LIKE' ,$request->input('dialect'));
-            });
-        }
+            if ($request->filled('dialect')) {
+                $subquery->where('dialect', $request->input('dialect'));
+            }
+        });
+
         // Ensure user has at least one skill and one language
             // $query->whereHas('userSkills', function ($subquery): void {
             //     $subquery->whereNotNull('language');
