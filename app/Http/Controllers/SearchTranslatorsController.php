@@ -40,147 +40,95 @@ class SearchTranslatorsController extends Controller
         }
     }
 
-public function searchTranslators(Request $request)
-{
-    $query = User::query();
 
-    // Apply dynamic filters inside a single userSkills query
-    $query->whereHas('userSkills', function ($subquery) use ($request) {
-        $subquery->where('status', 'active');
 
+
+
+    public function searchTranslators(Request $request)
+    {
+        $query = User::query();
+
+        // Apply filters from user_metas table
+        // if ($request->filled('fix_rate')) {
+
+        //     $query->whereHas('userMeta', function ($subquery) use ($request) {
+        //         $subquery->where(['fix_rate' => $request->input('fix_rate'),'status' => 'active']);
+        //     });
+        // }
+
+        // if ($request->filled('hourly_rate')) {
+        //     $query->whereHas('userMeta', function ($subquery) use ($request) {
+        //         $subquery->where('hourly_rate', $request->input('hourly_rate'));
+        //     });
+        // }
+
+        // if ($request->filled('location')) {
+        //     $query->whereHas('userMeta', function ($subquery) use ($request) {
+        //         $subquery->where('location', $request->input('location'));
+        //     });
+        // }
+
+        // if ($request->filled('gender')) {
+        //     $query->whereHas('userMeta', function ($subquery) use ($request) {
+        //         $subquery->where('gender', $request->input('gender'));
+        //     });
+        // }
+
+        // Apply filters from user_skills table
         if ($request->filled('language')) {
-            $subquery->where('language', $request->input('language'));
-        }
-
-        if ($request->filled('country')) {
-            $subquery->where('country', $request->input('country'));
-        }
-
-        if ($request->filled('dialect')) {
-            $subquery->where('dialect', 'LIKE', $request->input('dialect'));
-            // Use '%'.$request->input('dialect').'%' if partial matching is needed
+            $languageId = $request->input('language');
+            $query->whereHas('userSkills', function ($subquery) use ($request,$languageId) {
+                $subquery->where('language',$languageId );
+            });
         }
 
         if ($request->filled('level')) {
-            $subquery->where('level', $request->input('level'));
+            $query->whereHas('userSkills', function ($subquery) use ($request) {
+                $subquery->where('level',  $request->input('level'));
+            });
         }
-    });
 
-    // Base user filters
-    $query->with('userMeta', 'userSkills')
-        ->where([
-            'user_type' => 'translator',
-            'status' => 'active',
-        ]);
-
-    // Pagination
-    $pagelimit = $request->input('page_limit', 10);
-    $currentPage = $request->input('page', 1);
-
-    $translators = $query->paginate($pagelimit, ['*'], 'page', $currentPage);
-
-    return response()->json([
-        'message' => 'Translators fetched successfully.',
-        'data' => $translators->items(),
-        'current_page' => $translators->currentPage(),
-        'last_page' => $translators->lastPage(),
-        'total_count' => $translators->total(),
-        'total_pages' => $translators->lastPage(),
-        'status' => true,
-    ], 200);
-}
+        if ($request->filled('country')) {
+            $query->whereHas('userSkills', function ($subquery) use ($request) {
+                $subquery->where('country',  $request->input('country'));
+            });
+        }
 
 
-
-    // public function searchTranslators(Request $request)
-    // {
-    //     $query = User::query();
-
-    //     // Apply filters from user_metas table
-    //     if ($request->filled('fix_rate')) {
-
-    //         $query->whereHas('userMeta', function ($subquery) use ($request) {
-    //             $subquery->where(['fix_rate' => $request->input('fix_rate'),'status' => 'active']);
-    //         });
-    //     }
-
-    //     if ($request->filled('hourly_rate')) {
-    //         $query->whereHas('userMeta', function ($subquery) use ($request) {
-    //             $subquery->where('hourly_rate', $request->input('hourly_rate'));
-    //         });
-    //     }
-
-    //     if ($request->filled('location')) {
-    //         $query->whereHas('userMeta', function ($subquery) use ($request) {
-    //             $subquery->where('location', $request->input('location'));
-    //         });
-    //     }
-
-    //     if ($request->filled('gender')) {
-    //         $query->whereHas('userMeta', function ($subquery) use ($request) {
-    //             $subquery->where('gender', $request->input('gender'));
-    //         });
-    //     }
-
-    //     // Apply filters from user_skills table
-    //     if ($request->filled('language')) {
-    //         $languageId = $request->input('language');
-    //         $query->whereHas('userSkills', function ($subquery) use ($request,$languageId) {
-    //             $subquery->where('language',$languageId );
-    //         });
-    //         // $languageId = Language::where('name','Like','%'.$request->input('language').'%')->pluck('id');
-    //         // $query->whereHas('userSkills', function ($subquery) use ($request,$languageId) {
-    //         //     $subquery->whereIn('language',$languageId );
-    //         // });
-    //     }
-
-    //     if ($request->filled('level')) {
-    //         $query->whereHas('userSkills', function ($subquery) use ($request) {
-    //             $subquery->where('level',  $request->input('level'));
-    //         });
-    //     }
-
-    //     if ($request->filled('country')) {
-    //         $query->whereHas('userSkills', function ($subquery) use ($request) {
-    //             $subquery->where('country',  $request->input('country'));
-    //         });
-    //     }
+        if ($request->filled('dialect')) {
+            $query->whereHas('userSkills', function ($subquery) use ($request) {
+                $subquery->where('dialect', 'LIKE' ,$request->input('dialect'));
+            });
+        }
+        // Ensure user has at least one skill and one language
+            // $query->whereHas('userSkills', function ($subquery): void {
+            //     $subquery->whereNotNull('language');
+            // })
+            // ->whereHas('userSkills', function ($subquery) {
+            //     $subquery->whereNotNull('level');
+            // });
 
 
-    //     if ($request->filled('dialect')) {
-    //         $query->whereHas('userSkills', function ($subquery) use ($request) {
-    //             $subquery->where('dialect',  $request->input('dialect'));
-    //         });
-    //     }
-    //     // Ensure user has at least one skill and one language
-    //         $query->whereHas('userSkills', function ($subquery): void {
-    //             $subquery->whereNotNull('language'); // Ensure the user has a language
-    //         })
-    //         ->whereHas('userSkills', function ($subquery) {
-    //             $subquery->whereNotNull('level'); // Ensure the user has a skill (level)
-    //         });
+        $query->with('userMeta', 'userSkills')->where(['user_type' =>'translator','status' => 'active']);
+        // $translators = $query->get();
+        $pagelimit = $request->input('page_limit',10);
+        $currentPage = $request->input('page', 1);
+        $translators = $query->paginate($pagelimit , ['*'], 'page', $currentPage);
 
 
-    //     $query->with('userMeta', 'userSkills')->where(['user_type' =>'translator','status' => 'active']);
-    //     // $translators = $query->get();
-    //     $pagelimit = $request->input('page_limit',10);
-    //     $currentPage = $request->input('page', 1);
-    //     $translators = $query->paginate($pagelimit , ['*'], 'page', $currentPage);
+        return response()->json([
+            'message' => 'Translators fetched successfully.',
+            'data' => $translators->items(), // Get only the current page items
+            'current_page' => $translators->currentPage(),
+            'last_page' => $translators->lastPage(),
+            'total_count' => $translators->total(), // Total count of records
+            'total_pages' => $translators->lastPage(), // Total number of pages
+            'status' => true,
+        ], 200);
+        // return response()->json(['message' => 'Translators fetched successfully.' ,'data' => $translators ,'status' => true],200);
 
 
-    //     return response()->json([
-    //         'message' => 'Translators fetched successfully.',
-    //         'data' => $translators->items(), // Get only the current page items
-    //         'current_page' => $translators->currentPage(),
-    //         'last_page' => $translators->lastPage(),
-    //         'total_count' => $translators->total(), // Total count of records
-    //         'total_pages' => $translators->lastPage(), // Total number of pages
-    //         'status' => true,
-    //     ], 200);
-    //     // return response()->json(['message' => 'Translators fetched successfully.' ,'data' => $translators ,'status' => true],200);
-
-
-    // }
+    }
     public function searchTranslatorsSuggestions(Request $request)
     {
         $query = Language::query();
