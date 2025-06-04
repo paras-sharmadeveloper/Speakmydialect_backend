@@ -45,7 +45,7 @@ class SearchTranslatorsController extends Controller
 
     // Consolidated filter for userMeta with AND conditions and active status
     $query->whereHas('userMeta', function ($subquery) use ($request) {
-        $subquery->where('status', 'active');
+
 
         if ($request->filled('fix_rate')) {
             $subquery->where('fix_rate', $request->input('fix_rate'));
@@ -68,30 +68,35 @@ class SearchTranslatorsController extends Controller
     if ($request->filled('language')) {
         $languageId = $request->input('language');
         $query->whereHas('userSkills', function ($subquery) use ($languageId) {
+             $subquery->where('status', 'active');
             $subquery->where('language', $languageId);
         });
     }
 
     if ($request->filled('level')) {
         $query->whereHas('userSkills', function ($subquery) use ($request) {
+             $subquery->where('status', 'active');
             $subquery->where('level', $request->input('level'));
         });
     }
 
     if ($request->filled('country')) {
         $query->whereHas('userSkills', function ($subquery) use ($request) {
+             $subquery->where('status', 'active');
             $subquery->where('country', $request->input('country'));
         });
     }
 
     if ($request->filled('dialect')) {
         $query->whereHas('userSkills', function ($subquery) use ($request) {
+             $subquery->where('status', 'active');
             $subquery->where('dialect', $request->input('dialect'));
         });
     }
 
     // Ensure user has at least one skill and one language
     $query->whereHas('userSkills', function ($subquery) {
+         $subquery->where('status', 'active');
         $subquery->whereNotNull('language');
     })->whereHas('userSkills', function ($subquery) {
         $subquery->whereNotNull('level');
