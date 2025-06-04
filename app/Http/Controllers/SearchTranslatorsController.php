@@ -44,25 +44,25 @@ class SearchTranslatorsController extends Controller
     $query = User::query();
 
     // Consolidated filter for userMeta with AND conditions and active status
-    $query->whereHas('userMeta', function ($subquery) use ($request) {
+    // $query->whereHas('userMeta', function ($subquery) use ($request) {
 
 
-        if ($request->filled('fix_rate')) {
-            $subquery->where('fix_rate', $request->input('fix_rate'));
-        }
+    //     if ($request->filled('fix_rate')) {
+    //         $subquery->where('fix_rate', $request->input('fix_rate'));
+    //     }
 
-        if ($request->filled('hourly_rate')) {
-            $subquery->where('hourly_rate', $request->input('hourly_rate'));
-        }
+    //     if ($request->filled('hourly_rate')) {
+    //         $subquery->where('hourly_rate', $request->input('hourly_rate'));
+    //     }
 
-        if ($request->filled('location')) {
-            $subquery->where('location', $request->input('location'));
-        }
+    //     if ($request->filled('location')) {
+    //         $subquery->where('location', $request->input('location'));
+    //     }
 
-        if ($request->filled('gender')) {
-            $subquery->where('gender', $request->input('gender'));
-        }
-    });
+    //     if ($request->filled('gender')) {
+    //         $subquery->where('gender', $request->input('gender'));
+    //     }
+    // });
 
     // Apply filters from user_skills table
     if ($request->filled('language')) {
@@ -94,8 +94,6 @@ class SearchTranslatorsController extends Controller
         });
     }
 
-    $sql = str_replace_array('?', $query->getBindings(), $query->toSql());
-
 
     // Ensure user has at least one skill and one language
     // $query->whereHas('userSkills', function ($subquery) {
@@ -112,6 +110,11 @@ class SearchTranslatorsController extends Controller
             'user_type' => 'translator',
             'status' => 'active'
         ]);
+    // $query->with('userMeta', 'userSkills')
+    //     ->where([
+    //         'user_type' => 'translator',
+    //         'status' => 'active'
+    //     ]);
 
     // Pagination
     $pagelimit = $request->input('page_limit', 10);
@@ -127,7 +130,6 @@ class SearchTranslatorsController extends Controller
         'total_count' => $translators->total(),
         'total_pages' => $translators->lastPage(),
         'status' => true,
-        'query' =>  $sql
     ], 200);
 }
 
