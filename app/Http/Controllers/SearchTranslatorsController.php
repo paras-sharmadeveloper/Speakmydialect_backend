@@ -94,6 +94,8 @@ class SearchTranslatorsController extends Controller
         });
     }
 
+    dd($query->toSql(), $query->getBindings());
+
     // Ensure user has at least one skill and one language
     // $query->whereHas('userSkills', function ($subquery) {
     //      $subquery->where('status', 'active');
