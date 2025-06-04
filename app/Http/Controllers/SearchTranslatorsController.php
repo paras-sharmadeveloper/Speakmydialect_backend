@@ -94,7 +94,8 @@ class SearchTranslatorsController extends Controller
         });
     }
 
-    dd($query->toSql(), $query->getBindings());
+    $sql = str_replace_array('?', $query->getBindings(), $query->toSql());
+
 
     // Ensure user has at least one skill and one language
     // $query->whereHas('userSkills', function ($subquery) {
@@ -126,6 +127,7 @@ class SearchTranslatorsController extends Controller
         'total_count' => $translators->total(),
         'total_pages' => $translators->lastPage(),
         'status' => true,
+        'query' =>  $sql
     ], 200);
 }
 
